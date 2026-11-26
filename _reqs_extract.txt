@@ -1,0 +1,150 @@
+SYSTEM REQUIREMENTS DOCUMENT
+Modular Loan Management System
+with Integrated Accounting
+Philippine Setting • BIR-Compliant Reporting Support
+Prepared for On-the-Job Trainees (OJTs)
+Internship Duration: 500 Hours
+Technology Stack: PHP + MySQL
+Version 1.0 • November 2026
+1. Introduction and Objectives
+This document defines the requirements for a web-based Modular Loan Management System (LMS) with an integrated Accounting module. The system is designed for the Philippine setting and supports the generation of books of accounts, ledgers, and financial statements needed for BIR compliance and internal management.
+Primary Goal: Deliver a working, secure, and configurable application. Focus only on what is written in this document. Do not add features beyond this document unless explicitly approved.
+Key Design Principles
+Modular and Configurable: Enable or disable the LMS module and/or Accounting module independently via system settings. No code changes are required to switch modules on or off.
+Independent Operation: The system must fully function as an LMS-only application (with its own loan ledgers and reports). It must also fully function as an Accounting-only application. When both are enabled, LMS transactions automatically generate accounting journal entries based on configurable mappings.
+When Accounting is switched off, LMS continues to operate and maintains its transaction records and internal ledgers. Accounting entries can still be generated or queued for later posting if the module is re-enabled.
+Dynamic Configuration: Loan products, interest methods, fees, account mappings, roles, and most business rules are managed through the user interface.
+Security First: All features must implement proper authentication, authorization, input validation, and audit logging.
+Scalable & Future-Proof: Clean modular code structure, normalized database, and clear separation of concerns so new modules can be added later.
+2. System Overview and High-Level Flow
+The application is a single web system with three main modes controlled by configuration:
+LMS Only: Manage clients, loan products, loans, schedules, and collections. Maintain loan subsidiary ledgers and produce LMS reports. Accounting UI is hidden, but transaction data is stored in a way that can later feed accounting.
+Accounting Only: Full chart of accounts, manual journal entries, ledgers, trial balance, and financial statements. No loan-specific screens.
+Integrated Mode (Both Enabled): All LMS features plus automatic (or configurable) posting of LMS events as journal entries to the accounting module.
+High-Level Operational Flow (Integrated Mode)
+User logs in with role-based access.
+Create or configure Loan Product (interest method, rates, fees, etc.).
+Register Client/Borrower.
+Create Loan Application → Review → Approve → Disburse.
+System generates amortization schedule and records disbursement (and posts journal entry if Accounting is enabled).
+Record payments. System allocates amount (configurable order: fees → interest → principal) and updates balances.
+Accrue interest periodically (or on demand). Post to accounting if enabled.
+Generate reports: loan aging, portfolio, trial balance, financial statements, and BIR-oriented summaries.
+3. Recommended Development Order
+Build in this sequence. Complete and test each phase before moving to the next. This keeps the project manageable and ensures a working system at every major milestone. OJTs may allocate their available hours across these phases according to their own plan.
+Phase 1: Foundation & Security
+What to deliver:
+Project structure (recommended folders: /config, /routes, /process, /pages, /includes, /assets).
+All required third-party libraries and project dependencies must be installed and managed through Composer
+Database schema for users, roles, permissions, settings, and audit_logs.
+User registration and login with password_hash() and session management.
+Role-based access control (at least: Super Admin, Administrator, Loan Officer, Accountant, Viewer).
+System Settings page where modules can be enabled/disabled (LMS, Accounting) and company details are stored.
+Audit log for login, create, update, and delete actions.
+Implement a centralized function to verify the validity and expiration of trial accounts
+Controls: All pages require login. Unauthorized access is blocked. All inputs are validated and sanitized. Use PDO prepared statements everywhere.
+Phase 2: Accounting Core
+What to deliver:
+Chart of Accounts (CRUD) with account types (Asset, Liability, Equity, Income, Expense) and parent-child hierarchy.
+Manual Journal Entry form with debit/credit balance validation.
+General Ledger and Trial Balance reports.
+Basic Financial Statements: Statement of Financial Position (Balance Sheet) and Statement of Comprehensive Income (Income Statement).
+Note: This phase may be developed after or in parallel with Phase 3 depending on the team’s preference. The foundation must be complete first.
+Phase 3: Loan Management Module
+What to deliver:
+Client/Borrower management (CRUD with basic KYC fields: name, address, contact, TIN if available).
+Loan Product configuration (name, interest rate, interest method, term options, fees, penalty rate).
+Loan application, approval workflow (statuses), and disbursement.
+Automatic generation of amortization schedule.
+Payment recording with configurable allocation rules.
+Loan status updates and basic portfolio listing.
+Phase 4: Integration Layer
+What to deliver:
+Configurable Account Mapping screen (map LMS events to Chart of Accounts codes).
+Automatic journal entry generation on key LMS events (disbursement, payment, interest accrual, penalty).
+Ability for LMS to function fully even when Accounting UI is disabled (data is still stored).
+Phase 5: Reports, BIR Support & Polish
+What to deliver:
+LMS Reports: Loan Aging, Collection Report, Portfolio Summary, Delinquency/PAR.
+Accounting Reports: Journals, Ledgers, Trial Balance, Financial Statements.
+BIR-oriented outputs: Cash Receipts summary, Cash Disbursements summary, Interest Income details, support for books of accounts style views.
+Export capability (CSV/Excel) and basic PDF where practical.
+Final security review, input validation, and user documentation.
+4. Detailed Feature Requirements
+4.1 Configuration & Module Switching
+The system must have a central Settings area (accessible only to Administrators).
+Toggle: Enable Loan Management Module (Yes/No)
+Toggle: Enable Accounting Module (Yes/No)
+Company Name, Address, TIN, Fiscal Year Start
+Default Currency: Philippine Peso (PHP)
+When a module is disabled, its menu items and pages are hidden. Core data remains accessible to authorized users if needed.
+4.2 Loan Management Features
+Loan Products
+Configurable attributes: Product Name, Interest Rate (%), Interest Computation Method (Declining Balance / Flat Rate / Simple Interest), Payment Frequency (Monthly/Weekly), Default Term, Processing Fee, Penalty Rate for Late Payment.
+Loan Lifecycle
+Application created (status: Draft / Submitted).
+Review and Approve or Reject (with reason).
+Disburse (record actual disbursement date and amount). System generates amortization schedule.
+Servicing: Record payments, view schedule vs actual, track remaining balance.
+Close loan when fully paid, or mark as written-off (with approval).
+Sample Calculation – Declining Balance Amortization
+Example: Principal = ₱100,000 | Annual Interest Rate = 12% | Term = 12 months | Monthly Payment
+Monthly Interest Rate = 12% ÷ 12 = 1%
+Equal Principal Payment = 100,000 ÷ 12 ≈ ₱8,333.33
+Month 1: Interest = 100,000 × 1% = ₱1,000 | Total Payment = 8,333.33 + 1,000 = ₱9,333.33 | Remaining Principal = ₱91,666.67
+Month 2: Interest = 91,666.67 × 1% ≈ ₱916.67 | Total Payment ≈ ₱9,250 | and so on.
+The system must generate and store the full schedule upon disbursement. Users should be able to view it anytime.
+4.3 Accounting Features
+Chart of Accounts with standard Philippine lending-oriented structure (e.g., Cash, Loans Receivable, Interest Receivable, Interest Income, Penalty Income, Accounts Payable, etc.).
+Journal Entries (manual and system-generated).
+General Ledger and Subsidiary Ledgers (especially Loans Receivable by client/loan).
+Trial Balance.
+Financial Statements: Balance Sheet, Income Statement, and basic Cash Flow support.
+Support for books of accounts style reporting (Journal, Cash Receipts Book, Cash Disbursements Book summaries).
+4.4 Integration & Accounting Entries from LMS
+Example automatic entries (accounts are configurable):
+Loan Disbursement: Dr Loans Receivable | Cr Cash/Bank
+Interest Accrual: Dr Interest Receivable | Cr Interest Income
+Payment Received (interest portion): Dr Cash | Cr Interest Receivable (or Interest Income)
+Payment Received (principal portion): Dr Cash | Cr Loans Receivable
+Penalty: Dr Cash or Penalty Receivable | Cr Penalty Income
+All generated entries must be traceable back to the source loan transaction.
+4.5 Reports and BIR-Related Requirements
+The system must be able to produce the following (at minimum):
+Loan Portfolio Report and Aging Analysis (Current, 1-30, 31-60, 61-90, 90+ days past due).
+Collection Report and Delinquency Report.
+General Journal and General Ledger.
+Trial Balance (as of any date).
+Statement of Financial Position and Statement of Comprehensive Income.
+Cash Receipts and Cash Disbursements summaries (supporting books of accounts).
+Interest Income detail report (useful for income tax computation).
+Note: Full BIR registration of Computerized Books of Accounts (CBA) and actual tax filing forms are outside the scope of this internship. The system should produce accurate, auditable reports that can support such filings.
+5. Security Requirements (Mandatory)
+Password storage: Use PHP password_hash() and password_verify().
+SQL Injection prevention: Use PDO with prepared statements for all database operations. Never concatenate user input into SQL.
+XSS prevention: Escape all output (htmlspecialchars).
+CSRF protection on all forms (token-based).
+Role-based access control on every page and action.
+Session security: regenerate session ID on login, timeout inactive sessions.
+Audit trail: Log who did what and when for all financial and sensitive actions. Logs should be immutable (no edit/delete by normal users).
+Input validation and sanitization on all forms.
+Soft delete or status flags for financial records instead of hard deletes where possible.
+Implement API Rate Limiting based on User Accounts and IP addresses.
+Store all sensitive credentials and environment specific configuration in a .env file (never hardcoded sensitive credentials directly into source code)
+6. Scalability and Future-Proofing
+Use a modular code structure so new features (e.g., multi-branch, mobile app API, advanced provisioning) can be added without rewriting core logic.
+Database design must be normalized. Add proper indexes on frequently queried columns (client_id, loan_id, transaction_date, account_id).
+Store configuration in the database, not hard-coded.
+Design the integration layer so additional LMS events can be mapped to accounting without major code changes.
+Support for future multi-currency or multi-company is not required now, but avoid assumptions that lock the design to a single company.
+7. Deliverables and Acceptance Criteria
+By the end of the internship, the following must be delivered:
+Working web application (PHP Version 8.0.25 or higher + MySQL Version 8.0.25 or higher) that can be installed on a standard LAMP/WAMP environment.
+Database schema and sample seed data (at least one admin user, sample chart of accounts, sample loan product).
+Source code with basic comments and a README explaining setup steps.
+Demonstration that modules can be switched on/off and the system still functions correctly in each mode.
+All mandatory security controls implemented.
+Core reports working and producing accurate numbers (verified with the sample amortization calculation).
+Important: Stick strictly to the features and flows described in this document. If something is unclear, ask for clarification rather than inventing new requirements. The goal is a solid, working, secure foundation.
+— End of Document —
+This requirements document is the single source of truth for the OJT project. Develop only what is specified, in the recommended order.

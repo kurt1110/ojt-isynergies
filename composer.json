@@ -1,0 +1,12 @@
+{
+  "name": "lms/modular-accounting",
+  "description": "Modular Loan Management System with Integrated Accounting",
+  "require": {
+    "php": ">=8.0.25"
+  },
+  "autoload": {
+    "psr-4": {
+      "Lms\\": "src/"
+    }
+  }
+}
